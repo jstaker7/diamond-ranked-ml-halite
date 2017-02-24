@@ -10,6 +10,8 @@ from utils import pad_replay, prepare_filepaths, relu, convolve, aug
 current_path = os.path.abspath(__file__)
 replay_path = os.path.join('/', *current_path.split('/')[:-3], 'replays')
 
+assert os.path.exists(replay_path) # See download note below
+
 selected_replays = ['ng_replays_47',
                     'ng_replays_48',
                     'ng_replays_49',
@@ -21,13 +23,19 @@ selected_replays = ['ng_replays_47',
 
 _paths = [os.path.join(replay_path, p) for p in selected_replays]
 
-OUTPATH = os.path.join('/', *current_path.split('/')[:-1], 'model', 'model.ckp')
+pre_path = os.path.join('/', *current_path.split('/')[:-1], 'model')
+if not os.path.exists(pre_path):
+    os.mkdir(pre_path)
+OUTPATH = os.path.join(pre_path, 'model.ckp')
 
 paths = []
 for path in _paths:
     paths += prepare_filepaths(path)
 shuffle(paths)
 
+# NOTE: The collection of replays used to train my bot can be downloaded from
+# my dropbox at:
+# https://dl.dropboxusercontent.com/u/58202753/replays.zip
 assert len(paths) == 3242 # Total num of replays used during training
 
 # Just take a split of the randomized replays for use in validation
@@ -35,7 +43,7 @@ valid_paths = paths[-200:]
 paths = paths[:-200]
 
 
-batch_size = 4
+batch_size = 64
 dims = 60 # We pad all frames to this value
 
 def get_data(path):
